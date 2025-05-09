@@ -21,14 +21,20 @@ function SearchPage() {
     const fetchMembers = async () => {
       const defaultMembers = [
         { memberName: '김철수', memberLocation: '서울특별시 노원구 월계동' },
-        { memberName: '김영희', memberLocation: '서울특별시 마포구 연남동' },
-        { memberName: '사용자1', memberLocation: '경기도 성남시 분당구 삼평동' },
+        { memberName: '김영희', memberLocation: '서울특별시 성북구 정릉동' },
+        {
+          memberName: '사용자1',
+          memberLocation: '서울특별시 동대문구 회기동',
+        },
+        { memberName: '사용자2', memberLocation: '서울특별시 마포구 상수동' },
       ];
 
       try {
         if (meetId) {
           const res = await axios.get(`/api/meeting/info/${meetId}`);
-          const members = Array.isArray(res.data.members) ? res.data.members : defaultMembers;
+          const members = Array.isArray(res.data.members)
+            ? res.data.members
+            : defaultMembers;
           setMembers(members);
         } else {
           setMembers(defaultMembers);
@@ -50,55 +56,62 @@ function SearchPage() {
         category: selectedTag,
       });
 
-      const results = Array.isArray(res.data) && res.data.length > 0
-        ? res.data
-        : [
-            { placeName: '스타벅스 강남역점', address: '서울 강남구 테헤란로 123' },
-            { placeName: '이디야 역삼점', address: '서울 강남구 역삼로 456' },
-            { placeName: '투썸플레이스 신논현', address: '서울 서초구 강남대로 789' },
-          ];
+      const results =
+        Array.isArray(res.data) && res.data.length > 0
+          ? res.data
+          : [
+              {
+                placeName: '스타벅스 강남역점',
+                address: '서울 강남구 테헤란로 123',
+              },
+              { placeName: '이디야 역삼점', address: '서울 강남구 역삼로 456' },
+              {
+                placeName: '투썸플레이스 신논현',
+                address: '서울 서초구 강남대로 789',
+              },
+            ];
 
       navigate('/detail', { state: { results, tag: selectedTag, members } });
     } catch (err) {
       console.warn('검색 실패, 임시 데이터로 이동합니다:', err);
       const fallback = {
         center: {
-          lat: 37.501274,
-          lng: 127.039585,
-          name: '강남역',
+          lat: 37.582059,
+          lng: 127.001888,
+          name: '혜화역',
         },
         places: [
           {
-            name: '스타벅스 강남역점',
-            address: '서울 강남구 테헤란로 123',
-            lat: 37.500,
-            lng: 127.035,
-            category: '카페',
+            name: '칸다소바 혜화점',
+            address: '서울 종로구 대학로 131-1',
+            lat: 37.582821,
+            lng: 127.001381,
+            category: '일식',
           },
           {
-            name: '이디야 역삼점',
-            address: '서울 강남구 역삼로 456',
-            lat: 37.502,
-            lng: 127.037,
-            category: '카페',
+            name: '마로니에공원',
+            address: '서울 종로구 대학로 104',
+            lat: 37.580478,
+            lng: 127.002835,
+            category: '공원',
           },
           {
-            name: '투썸플레이스 신논현',
-            address: '서울 서초구 강남대로 789',
-            lat: 37.503,
-            lng: 127.041,
-            category: '디저트',
+            name: '커피한약방 혜화점',
+            address: '서울 종로구 동숭2길 9',
+            lat: 37.580825,
+            lng: 127.004801,
+            category: '카페',
           },
         ],
       };
-      
+
       navigate('/detail', {
         state: {
           results: fallback,
           tag: selectedTag,
           members,
         },
-      });      
+      });
     }
   };
 
@@ -145,14 +158,71 @@ function SearchPage() {
 
 export default SearchPage;
 
-const Container = styled.div`padding: 20px;`;
-const Title = styled.h2`font-size: 22px; font-weight: bold; margin-bottom: 16px;`;
-const MemberList = styled.div`border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin-bottom: 20px;`;
-const Member = styled.div`display: flex; align-items: center; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; font-size: 14px; &:last-child { border-bottom: none; }`;
-const ProfileIcon = styled.img`width: 36px; height: 36px; border-radius: 50%; margin-right: 12px;`;
-const MemberInfo = styled.div`flex: 1;`;
-const EditBtn = styled.button`font-size: 12px; padding: 4px 8px; border-radius: 8px; border: none; background: #4f46e5; color: white;`;
-const SubTitle = styled.div`font-weight: bold; margin-bottom: 10px;`;
-const Tags = styled.div`display: flex; gap: 10px; margin-bottom: 24px;`;
-const Tag = styled.div`padding: 6px 12px; border-radius: 20px; background-color: ${({ selected }) => (selected ? '#4f46e5' : '#eee')}; color: ${({ selected }) => (selected ? '#fff' : '#000')}; cursor: pointer;`;
-const SearchBtn = styled.button`width: 100%; padding: 14px; background: ${({ theme }) => theme.colors.primary}; color: white; font-weight: bold; font-size: 16px; border: none; border-radius: 12px;`;
+const Container = styled.div`
+  padding: 20px;
+`;
+const Title = styled.h2`
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 16px;
+`;
+const MemberList = styled.div`
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 20px;
+`;
+const Member = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+const ProfileIcon = styled.img`
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  margin-right: 12px;
+`;
+const MemberInfo = styled.div`
+  flex: 1;
+`;
+const EditBtn = styled.button`
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: none;
+  background: #4f46e5;
+  color: white;
+`;
+const SubTitle = styled.div`
+  font-weight: bold;
+  margin-bottom: 10px;
+`;
+const Tags = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+`;
+const Tag = styled.div`
+  padding: 6px 12px;
+  border-radius: 20px;
+  background-color: ${({ selected }) => (selected ? '#4f46e5' : '#eee')};
+  color: ${({ selected }) => (selected ? '#fff' : '#000')};
+  cursor: pointer;
+`;
+const SearchBtn = styled.button`
+  width: 100%;
+  padding: 14px;
+  background: ${({ theme }) => theme.colors.primary};
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  border: none;
+  border-radius: 12px;
+`;
