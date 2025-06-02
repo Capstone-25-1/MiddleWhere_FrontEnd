@@ -1,11 +1,12 @@
-// SearchPage.jsx
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import Header from '../components/Header';
 import SideMenu from '../components/SideMenu';
-import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
 import defaultAvatar from '../assets/default-profile.png';
+import { updateUserLocation } from '../Apis/meeting';
+import { searchMidpoint, getCategoryRecommendation } from '../Apis/search';
+import axios from 'axios';
 
 function SearchPage() {
   const location = useLocation();
@@ -16,89 +17,74 @@ function SearchPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [members, setMembers] = useState([]);
   const [selectedTag, setSelectedTag] = useState('식사');
+  const TAGS = ['식사', '데이트', '영화', '공부'];
 
   useEffect(() => {
     const fetchMembers = async () => {
-      const defaultMembers = [
-        { memberName: '김철수', memberLocation: '서울특별시 노원구 월계동' },
-        { memberName: '김영희', memberLocation: '서울특별시 마포구 연남동' },
-        { memberName: '사용자1', memberLocation: '경기도 성남시 분당구 삼평동' },
-      ];
-
       try {
         if (meetId) {
           const res = await axios.get(`/api/meeting/info/${meetId}`);
-          const members = Array.isArray(res.data.members) ? res.data.members : defaultMembers;
+          const members = Array.isArray(res.data.members) ? res.data.members : [];
           setMembers(members);
         } else {
-          setMembers(defaultMembers);
+          setMembers([]);
         }
       } catch (err) {
-        console.warn('⚠️ 모임 멤버 불러오기 실패. 기본값 사용');
-        setMembers(defaultMembers);
+        console.warn('⚠️ 모임 멤버 불러오기 실패:', err);
+        setMembers([]);
       }
     };
 
     fetchMembers();
-  }, []);
+  }, [meetId]);
 
   const handleSearch = async () => {
     try {
       const locations = members.map((m) => m.memberLocation);
-      const res = await axios.post('/api/search/where', {
-        locations,
-        category: selectedTag,
-      });
-
-      const results = Array.isArray(res.data) && res.data.length > 0
-        ? res.data
-        : [
-            { placeName: '스타벅스 강남역점', address: '서울 강남구 테헤란로 123' },
-            { placeName: '이디야 역삼점', address: '서울 강남구 역삼로 456' },
-            { placeName: '투썸플레이스 신논현', address: '서울 서초구 강남대로 789' },
-          ];
-
+      const results = await searchMidpoint({ locations, category: selectedTag });
       navigate('/detail', { state: { results, tag: selectedTag, members } });
     } catch (err) {
-      console.warn('검색 실패, 임시 데이터로 이동합니다:', err);
-      const fallback = {
-        center: {
-          lat: 37.501274,
-          lng: 127.039585,
-          name: '강남역',
-        },
-        places: [
-          {
-            name: '스타벅스 강남역점',
-            address: '서울 강남구 테헤란로 123',
-            lat: 37.500,
-            lng: 127.035,
-            category: '카페',
-          },
-          {
-            name: '이디야 역삼점',
-            address: '서울 강남구 역삼로 456',
-            lat: 37.502,
-            lng: 127.037,
-            category: '카페',
-          },
-          {
-            name: '투썸플레이스 신논현',
-            address: '서울 서초구 강남대로 789',
-            lat: 37.503,
-            lng: 127.041,
-            category: '디저트',
-          },
-        ],
-      };
-      
+      console.warn('검색 실패:', err);
       navigate('/detail', {
         state: {
-          results: fallback,
+          results: {
+            center: {},
+            places: [],
+          },
           tag: selectedTag,
           members,
         },
-      });      
+      });
+    }
+  };
+
+  const handleTagSelect = async (tag) => {
+    setSelectedTag(tag);
+    try {
+      const data = await getCategoryRecommendation(tag);
+      console.log('카테고리 변경 결과:', data);
+    } catch (err) {
+      console.warn('카테고리 변경 실패:', err);
+    }
+  };
+
+  const handleLocationChange = async (member) => {
+    const newLocation = prompt(`새 출발 위치를 입력하세요 (현재: ${member.memberLocation})`);
+    if (!newLocation?.trim()) return;
+    try {
+      await updateUserLocation({
+        meetId,
+        userId: member.userId,
+        newLocation,
+      });
+      alert('출발 위치가 변경되었습니다.');
+      setMembers((prev) =>
+        prev.map((m) =>
+          m.userId === member.userId ? { ...m, memberLocation: newLocation } : m
+        )
+      );
+    } catch (err) {
+      alert('출발 위치 수정 실패');
     }
   };
 
@@ -117,21 +103,21 @@ function SearchPage() {
                 <div>{m.memberName}</div>
                 <div>{m.memberLocation}</div>
               </MemberInfo>
-              <EditBtn>위치 수정</EditBtn>
+              <EditBtn onClick={() => handleLocationChange(m)}>위치 수정</EditBtn>
             </Member>
           ))
         ) : (
-          <div>멤버를 불러오는 중입니다...</div>
+          <div>모임 멤버가 없습니다.</div>
         )}
       </MemberList>
 
       <SubTitle>방문 목적 선택</SubTitle>
       <Tags>
-        {['식사', '데이트', '영화', '공부'].map((tag) => (
+        {TAGS.map((tag) => (
           <Tag
             key={tag}
             selected={selectedTag === tag}
-            onClick={() => setSelectedTag(tag)}
+            onClick={() => handleTagSelect(tag)}
           >
             #{tag}
           </Tag>
