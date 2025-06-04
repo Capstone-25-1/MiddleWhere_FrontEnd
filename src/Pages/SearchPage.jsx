@@ -33,26 +33,25 @@ function SearchPage() {
         }
       } catch (err) {
         console.warn('⚠️ 모임 멤버 불러오기 실패:', err);
-        setMembers([]);
+        setMembers([
+          {
+            memberName: '홍길동',
+            memberLocation: '서울역',
+          },
+          {
+            memberName: '김영희',
+            memberLocation: '잠실역',
+          },
+          {
+            memberName: '이철수',
+            memberLocation: '홍대입구역',
+          },
+          {
+            memberName: '한지우',
+            memberLocation: '석계역',
+          },
+        ]);
       }
-      setMembers([
-        {
-          memberName: '홍길동',
-          memberLocation: '서울역',
-        },
-        {
-          memberName: '김영희',
-          memberLocation: '잠실역',
-        },
-        {
-          memberName: '이철수',
-          memberLocation: '홍대입구역',
-        },
-        {
-          memberName: '한지우',
-          memberLocation: '석계역',
-        },
-      ]);
     };
 
     fetchMembers();
