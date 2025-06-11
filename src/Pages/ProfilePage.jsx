@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import Header from '../components/Header';
 import SideMenu from '../components/SideMenu';
 import { useNavigate } from 'react-router-dom';
-import { updateUserInfo, deleteUser } from '../Apis/profile';
+import { updateUserInfo, deleteUser, getUserInfo } from '../Apis/profile';
 
 function ProfilePage() {
   const user = JSON.parse(localStorage.getItem('kakao_user'));
@@ -14,6 +14,14 @@ function ProfilePage() {
   const navigate = useNavigate();
 
   const handleSave = async () => {
+    if (
+      nickname.length === 0 ||
+      age.length === 0 ||
+      defaultLocation.length === 0
+    ) {
+      alert('정보를 빠짐없이 입력해주세요.');
+      return;
+    }
     try {
       await updateUserInfo({
         userId: user.id,
@@ -39,6 +47,19 @@ function ProfilePage() {
       alert('탈퇴 실패');
     }
   };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const myData = await getUserInfo(user.id);
+        setNickname(myData.data.userName);
+        setAge(myData.data.userAge);
+        setDefaultLocation(myData.data.userDefaultLocation);
+      } catch (err) {
+        console.warn('데이터 불러오기 실패: ', err);
+      }
+    };
+    fetchData();
+  }, [user.id]);
 
   return (
     <Container>
